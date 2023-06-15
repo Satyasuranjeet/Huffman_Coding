@@ -1,0 +1,133 @@
+<pre>
+ <code id="htmlViewer" style="color:rgb(168, 161, 159); font-weight:400;background-color:rgb(27, 25, 24);background:rgb(27, 25, 24);display:block;padding: .5em;"><span style="color:rgb(102, 102, 234); font-weight:400;">import</span> heapq
+<span style="color:rgb(102, 102, 234); font-weight:400;">import</span> os
+
+
+<span style="color:rgb(102, 102, 234); font-weight:400;">class</span> <span class="hljs-title class_">HuffmanNode</span>:
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">__init__</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, char, freq</span>):
+        self.char = char
+        self.freq = freq
+        self.left = <span style="color:rgb(223, 83, 32); font-weight:400;">None</span>
+        self.right = <span style="color:rgb(223, 83, 32); font-weight:400;">None</span>
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">__lt__</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, other</span>):
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> self.freq &lt; other.freq
+
+
+<span style="color:rgb(102, 102, 234); font-weight:400;">class</span> <span class="hljs-title class_">HuffmanCoding</span>:
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">__init__</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self</span>):
+        self.heap = []
+        self.codes = {}
+        self.reverse_mapping = {}
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">frequency_counter</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, data</span>):
+        frequency = {}
+        <span style="color:rgb(102, 102, 234); font-weight:400;">for</span> char <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> data:
+            <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> char <span style="color:rgb(102, 102, 234); font-weight:400;">not</span> <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> frequency:
+                frequency[char] = <span style="color:rgb(223, 83, 32); font-weight:400;">0</span>
+            frequency[char] += <span style="color:rgb(223, 83, 32); font-weight:400;">1</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> frequency
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">build_heap</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, frequency</span>):
+        <span style="color:rgb(102, 102, 234); font-weight:400;">for</span> key, value <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> frequency.items():
+            node = HuffmanNode(key, value)
+            heapq.heappush(self.heap, node)
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">build_tree</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self</span>):
+        <span style="color:rgb(102, 102, 234); font-weight:400;">while</span> <span style="color:rgb(223, 83, 32); font-weight:400;">len</span>(self.heap) &gt; <span style="color:rgb(223, 83, 32); font-weight:400;">1</span>:
+            node1 = heapq.heappop(self.heap)
+            node2 = heapq.heappop(self.heap)
+            merged = HuffmanNode(<span style="color:rgb(223, 83, 32); font-weight:400;">None</span>, node1.freq + node2.freq)
+            merged.left = node1
+            merged.right = node2
+            heapq.heappush(self.heap, merged)
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">build_codes</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, root, current_code</span>):
+        <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> root <span style="color:rgb(102, 102, 234); font-weight:400;">is</span> <span style="color:rgb(223, 83, 32); font-weight:400;">None</span>:
+            <span style="color:rgb(102, 102, 234); font-weight:400;">return</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> root.char <span style="color:rgb(102, 102, 234); font-weight:400;">is</span> <span style="color:rgb(102, 102, 234); font-weight:400;">not</span> <span style="color:rgb(223, 83, 32); font-weight:400;">None</span>:
+            self.codes[root.char] = current_code
+            self.reverse_mapping[current_code] = root.char
+            <span style="color:rgb(102, 102, 234); font-weight:400;">return</span>
+        self.build_codes(root.left, current_code + <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;0&quot;</span>)
+        self.build_codes(root.right, current_code + <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;1&quot;</span>)
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">compress</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, data</span>):
+        frequency = self.frequency_counter(data)
+        self.build_heap(frequency)
+        self.build_tree()
+        self.build_codes(heapq.heappop(self.heap), <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>)
+        compressed_data = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">for</span> char <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> data:
+            compressed_data += self.codes[char]
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> compressed_data
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">pad_encoded_data</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, encoded_data</span>):
+        padding_amount = <span style="color:rgb(223, 83, 32); font-weight:400;">8</span> - (<span style="color:rgb(223, 83, 32); font-weight:400;">len</span>(encoded_data) % <span style="color:rgb(223, 83, 32); font-weight:400;">8</span>)
+        encoded_data += <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;0&quot;</span> * padding_amount
+        padding_info = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;{0:08b}&quot;</span>.<span style="color:rgb(223, 83, 32); font-weight:400;">format</span>(padding_amount)
+        encoded_data = padding_info + encoded_data
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> encoded_data
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">get_byte_array</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, padded_encoded_data</span>):
+        <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> <span style="color:rgb(223, 83, 32); font-weight:400;">len</span>(padded_encoded_data) % <span style="color:rgb(223, 83, 32); font-weight:400;">8</span> != <span style="color:rgb(223, 83, 32); font-weight:400;">0</span>:
+            <span style="color:rgb(102, 102, 234); font-weight:400;">raise</span> ValueError(<span style="color:rgb(123, 151, 38); font-weight:400;">&quot;Encoded data is not padded properly.&quot;</span>)
+        b = <span style="color:rgb(223, 83, 32); font-weight:400;">bytearray</span>()
+        <span style="color:rgb(102, 102, 234); font-weight:400;">for</span> i <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> <span style="color:rgb(223, 83, 32); font-weight:400;">range</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">0</span>, <span style="color:rgb(223, 83, 32); font-weight:400;">len</span>(padded_encoded_data), <span style="color:rgb(223, 83, 32); font-weight:400;">8</span>):
+            byte = padded_encoded_data[i:i + <span style="color:rgb(223, 83, 32); font-weight:400;">8</span>]
+            b.append(<span style="color:rgb(223, 83, 32); font-weight:400;">int</span>(byte, <span style="color:rgb(223, 83, 32); font-weight:400;">2</span>))
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> b
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">compress_file</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, input_file, output_file</span>):
+        file_name, file_extension = os.path.splitext(input_file)
+        output_file_path = output_file <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> output_file <span style="color:rgb(102, 102, 234); font-weight:400;">else</span> file_name + <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;.bin&quot;</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">with</span> <span style="color:rgb(223, 83, 32); font-weight:400;">open</span>(input_file, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;r&#x27;</span>) <span style="color:rgb(102, 102, 234); font-weight:400;">as</span> file, <span style="color:rgb(223, 83, 32); font-weight:400;">open</span>(output_file_path, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;wb&#x27;</span>) <span style="color:rgb(102, 102, 234); font-weight:400;">as</span> output:
+            data = file.read().rstrip()
+            compressed_data = self.compress(data)
+            padded_encoded_data = self.pad_encoded_data(compressed_data)
+            byte_array = self.get_byte_array(padded_encoded_data)
+            output.write(<span style="color:rgb(223, 83, 32); font-weight:400;">bytes</span>(byte_array))
+
+        <span style="color:rgb(223, 83, 32); font-weight:400;">print</span>(<span style="color:rgb(123, 151, 38); font-weight:400;">&quot;File compressed successfully.&quot;</span>)
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">decompress</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, padded_encoded_data</span>):
+        current_code = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>
+        decompressed_data = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">for</span> bit <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> padded_encoded_data:
+            current_code += bit
+            <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> current_code <span style="color:rgb(102, 102, 234); font-weight:400;">in</span> self.reverse_mapping:
+                char = self.reverse_mapping[current_code]
+                decompressed_data += char
+                current_code = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> decompressed_data
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">remove_padding</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, padded_encoded_data</span>):
+        padding_info = padded_encoded_data[:<span style="color:rgb(223, 83, 32); font-weight:400;">8</span>]
+        padding_amount = <span style="color:rgb(223, 83, 32); font-weight:400;">int</span>(padding_info, <span style="color:rgb(223, 83, 32); font-weight:400;">2</span>)
+        padded_encoded_data = padded_encoded_data[<span style="color:rgb(223, 83, 32); font-weight:400;">8</span>:]
+        unpadded_encoded_data = padded_encoded_data[:-padding_amount]
+        <span style="color:rgb(102, 102, 234); font-weight:400;">return</span> unpadded_encoded_data
+
+    <span style="color:rgb(102, 102, 234); font-weight:400;">def</span> <span class="hljs-title function_">decompress_file</span>(<span style="color:rgb(223, 83, 32); font-weight:400;">self, input_file, output_file</span>):
+        file_name, file_extension = os.path.splitext(input_file)
+        output_file_path = output_file <span style="color:rgb(102, 102, 234); font-weight:400;">if</span> output_file <span style="color:rgb(102, 102, 234); font-weight:400;">else</span> file_name + <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;_decompressed&quot;</span> + file_extension
+        <span style="color:rgb(102, 102, 234); font-weight:400;">with</span> <span style="color:rgb(223, 83, 32); font-weight:400;">open</span>(input_file, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;rb&#x27;</span>) <span style="color:rgb(102, 102, 234); font-weight:400;">as</span> file, <span style="color:rgb(223, 83, 32); font-weight:400;">open</span>(output_file_path, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;w&#x27;</span>) <span style="color:rgb(102, 102, 234); font-weight:400;">as</span> output:
+            bit_string = <span style="color:rgb(123, 151, 38); font-weight:400;">&quot;&quot;</span>
+            byte = file.read(<span style="color:rgb(223, 83, 32); font-weight:400;">1</span>)
+            <span style="color:rgb(102, 102, 234); font-weight:400;">while</span> <span style="color:rgb(223, 83, 32); font-weight:400;">len</span>(byte) &gt; <span style="color:rgb(223, 83, 32); font-weight:400;">0</span>:
+                byte = <span style="color:rgb(223, 83, 32); font-weight:400;">ord</span>(byte)
+                bits = <span style="color:rgb(223, 83, 32); font-weight:400;">bin</span>(byte)[<span style="color:rgb(223, 83, 32); font-weight:400;">2</span>:].rjust(<span style="color:rgb(223, 83, 32); font-weight:400;">8</span>, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;0&#x27;</span>)
+                bit_string += bits
+                byte = file.read(<span style="color:rgb(223, 83, 32); font-weight:400;">1</span>)
+            unpadded_encoded_data = self.remove_padding(bit_string)
+            decompressed_data = self.decompress(unpadded_encoded_data)
+            output.write(decompressed_data)
+
+        <span style="color:rgb(223, 83, 32); font-weight:400;">print</span>(<span style="color:rgb(123, 151, 38); font-weight:400;">&quot;File decompressed successfully.&quot;</span>)
+
+
+<span style="color:rgb(156, 148, 145); font-weight:400;"># Usage example</span>
+huffman = HuffmanCoding()
+huffman.compress_file(<span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;input.txt&#x27;</span>, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;compressed.bin&#x27;</span>)
+huffman.decompress_file(<span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;compressed.bin&#x27;</span>, <span style="color:rgb(123, 151, 38); font-weight:400;">&#x27;output.txt&#x27;</span>)
+</code></pre>
